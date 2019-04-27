@@ -1,29 +1,62 @@
+package Service;
 import Commands.Command;
 import Commands.CreateUser;
 import Commands.DeleteUser;
 import Commands.RetrieveUser;
 import Commands.UpdateUser;
 
+import com.mongodb.client.MongoDatabase;
 //import Commands.delete.DeleteMessage;
 //import Commands.get.GetMessage;
 //import Commands.get.GetMessages;
 //import Commands.patch.UpdateMessage;
 //import Commands.post.CreateMessage;
 import com.rabbitmq.client.*;
+
+import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeoutException;
+import java.util.regex.Pattern;
 
 public class UsersService {
-	private static final String RPC_QUEUE_NAME = "user-request";
+	private static String RPC_QUEUE_NAME = "user-request";
+	public static String getRPC_QUEUE_NAME() {
+		return RPC_QUEUE_NAME;
+	}
+	public static void setRPC_QUEUE_NAME(String rPC_QUEUE_NAME) {
+		RPC_QUEUE_NAME = rPC_QUEUE_NAME;
+	}
 
+	public static  MongoDatabase database;
+	public static HashMap<String, String> config;
+	static int threadPoolCount=4;
+	public static int getThreadPoolCount() {
+		return threadPoolCount;
+	}
+	public static void setThreadPoolCount(int threadPoolCount) {
+		UsersService.threadPoolCount = threadPoolCount;
+	}
 	public static void main(String[] argv) {
+		run();
+		ServiceController.run();
+	}
+	public static void run() {
+		try {
+			updateHashMap();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 
 		// initialize thread pool of fixed size
 		final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(4);
@@ -52,22 +85,26 @@ public class UsersService {
 						String message = new String(body, "UTF-8");
 						JSONParser parser = new JSONParser();
 						JSONObject messageBody = (JSONObject) parser.parse(message);
-						String command = (String) messageBody.get("command");
-						Command cmd = null;
-						switch (command) {
-						case "CreateUser":
-							cmd = new CreateUser();
-							break;
-						case "RetrieveUser":
-							cmd = new RetrieveUser();
-							break;
-						case "UpdateUser":
-							cmd = new UpdateUser();
-							break;
-//						case "DeleteUser":
-//							cmd = new DeleteUser();
-//							break;
+//						String service = StringUtils.substringsBetween((String) messageBody.get("uri"), "/", "/");
+						String [] URI = ((String) messageBody.get("uri")).split(Pattern.quote("/"));
+						String service= "";
+						for (int i =0; i<URI.length;i++) {
+							if (!(StringUtils.containsAny(URI[i],  new char []{'0','1','2','3','4','5','6','7','8','9'}))) {
+								service += URI[i]+"/";
+							}else {
+								service += "id";
+
+							}
 						}
+//						System.out.println((String) messageBody.get("uri"));
+//						StringUtils.containsAny(str, searchChars)
+						System.out.println("URI"+ URI[0]);
+						String key = (String) messageBody.get("request_method")+ service;
+						System.out.println("KEY"+ key );
+						System.out.println("config"+config.get(key));
+						String command = (String)config.get(key);
+						Command cmd = (Command) Class.forName("Commands."+command).newInstance();
+						System.out.println(cmd);
 						HashMap<String, Object> props = new HashMap<String, Object>();
 						props.put("channel", channel);
 						props.put("properties", properties);
@@ -80,6 +117,15 @@ public class UsersService {
 					} catch (RuntimeException e) {
 						System.out.println(" [.] " + e.toString());
 					} catch (ParseException e) {
+						e.printStackTrace();
+					} catch (InstantiationException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IllegalAccessException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (ClassNotFoundException e) {
+						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} finally {
 						synchronized (this) {
@@ -101,5 +147,23 @@ public class UsersService {
 		JSONObject messageJson = (JSONObject) parser.parse(message);
 		String result = messageJson.get("command").toString();
 		return result;
+	}
+	
+	public static void updateHashMap() throws IOException {
+		config = new HashMap<String, String>();
+		System.out.println("X");
+		File file = new File("src/config");
+		BufferedReader br = new BufferedReader(new FileReader(file)); 
+		  
+		  String st; 
+
+		  while ((st = br.readLine()) != null) {
+			    System.out.println(st); 
+			  String[] array = st.split(",");
+			  config.put(array[0]+array[1],array[2]);
+		  }
+		  System.out.println(config);
+		 br.close(); 
+
 	}
 }

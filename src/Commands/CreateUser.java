@@ -20,11 +20,11 @@ public class CreateUser extends ConcreteCommand {
 		HashMap<String, Object> props = parameters;
 		Channel channel = (Channel) props.get("channel");
 		JSONParser parser = new JSONParser();
-        String name;
-        String birthdate;
-        String bio;
-        String phone_number;
-        String address;
+        String name = "";
+        String birthdate= "";
+        String bio= "";
+        String phone_number= "";
+        String address= "";
 		try {
 			JSONObject body = (JSONObject) parser.parse((String) props.get("body"));
 //	        System.out.println("The BODY is: " + body.toString());
@@ -41,7 +41,7 @@ public class CreateUser extends ConcreteCommand {
 		AMQP.BasicProperties properties = (AMQP.BasicProperties) props.get("properties");
 		AMQP.BasicProperties replyProps = (AMQP.BasicProperties) props.get("replyProps");
 		Envelope envelope = (Envelope) props.get("envelope");
-		String response = Restaurant.Create(name, birthdate, bio, phone_number, address);
+		String response = User.Create(name, birthdate, bio, phone_number, address);
 //		System.out.print("Response ");
 //		System.out.println(response);
 		sendMessage("database", properties.getCorrelationId(), response);

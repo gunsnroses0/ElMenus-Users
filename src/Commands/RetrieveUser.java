@@ -39,7 +39,7 @@ public class RetrieveUser extends ConcreteCommand {
 		AMQP.BasicProperties properties = (AMQP.BasicProperties) props.get("properties");
 		AMQP.BasicProperties replyProps = (AMQP.BasicProperties) props.get("replyProps");
 		Envelope envelope = (Envelope) props.get("envelope");
-		String response = Restaurant.getById(id);
+		String response = User.getById(id);
 //		System.out.println(response);
 		sendMessage("database", properties.getCorrelationId(), response);
 	}

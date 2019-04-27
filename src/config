@@ -1,0 +1,9 @@
+POST,/user/,CreateUser
+GET,/user/id,RetrieveUser
+PATCH,/user/id,UpdateUser
+DELETE,/user/id,DeleteUser
+GET,/user/id,GetReview
+POST,/review/addCommand/,AddCommand
+POST,/review/deleteCommand/,DeleteCommand
+GET,/review/freeze/,FreezeQueue
+GET,/review/resume/,ResumeQueue

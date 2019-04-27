@@ -20,11 +20,11 @@ public class UpdateUser extends ConcreteCommand {
 		Channel channel = (Channel) props.get("channel");
 		JSONParser parser = new JSONParser();
 		int id = 0;
-        String name;
-        String birthdate;
-        String bio;
-        String phone_number;
-        String address;
+        String name = "";
+        String birthdate = "";
+        String bio = "";
+        String phone_number = "";
+        String address = "";
 		try {
 			JSONObject body = (JSONObject) parser.parse((String) props.get("body"));
 //	        System.out.println("The BODY is: " + body.toString());
@@ -42,7 +42,7 @@ public class UpdateUser extends ConcreteCommand {
 		AMQP.BasicProperties properties = (AMQP.BasicProperties) props.get("properties");
 		AMQP.BasicProperties replyProps = (AMQP.BasicProperties) props.get("replyProps");
 		Envelope envelope = (Envelope) props.get("envelope");
-		String response = Restaurant.Update(id,name, birthdate, bio, phone_number, address) + "";
+		String response = User.Update(id,name, birthdate, bio, phone_number, address) + "";
 		sendMessage("database", properties.getCorrelationId(), response);
 	}
 
