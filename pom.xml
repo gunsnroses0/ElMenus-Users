@@ -22,7 +22,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>Service.UserService</mainClass>
+                            <mainClass>Service.UsersService</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
